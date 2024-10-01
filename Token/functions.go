@@ -15,6 +15,11 @@ import (
 var db *gorm.DB
 var jwtKey = []byte("secret_key")
 
+// Initialize function to set the DB instance
+func Init(database *gorm.DB) {
+    db = database
+}
+
 func Login(c *gin.Context) {
 	var loginRequest struct {
 		Username string `json:"username" binding:"required"`

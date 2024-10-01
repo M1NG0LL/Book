@@ -119,7 +119,7 @@ func GetBooks(c *gin.Context) {
 
 // PUT
 // Update a book by ID
-func UpdateMyBook(c *gin.Context, db *gorm.DB) {
+func UpdateMyBook(c *gin.Context) {
 	id := c.Param("id")
 	
 	var book Book

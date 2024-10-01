@@ -9,7 +9,7 @@ import (
 
 // POST
 // Put like on a book by ID
-func PutLike(c *gin.Context, db *gorm.DB) {
+func PutLike(c *gin.Context) {
 	accountID, ID_exists := c.Get("accountID")
 	IsActive, _ := c.Get("isActive")
 	
@@ -26,7 +26,7 @@ func PutLike(c *gin.Context, db *gorm.DB) {
 	bookID := c.Param("id")
 
 	var book Book
-	if err := db.First(&book, bookID).Error; err != nil {
+	if err := db.First(&book, "id = ?", bookID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Book not found"})
 		return
 	}
@@ -61,7 +61,7 @@ func PutLike(c *gin.Context, db *gorm.DB) {
 func GetLikesByAccount(c *gin.Context) {
 	accountID, ID_exists := c.Get("accountID")
 	IsActive, _ := c.Get("isActive")
-	
+
 	if !ID_exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
@@ -73,7 +73,7 @@ func GetLikesByAccount(c *gin.Context) {
 	}
 
 	var likes []Like
-	if err := db.Where("account_id = ?", accountID).Find(&likes).Error; err != nil {
+	if err := db.Where("account_id = ?", accountID.(string)).Find(&likes).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -82,8 +82,8 @@ func GetLikesByAccount(c *gin.Context) {
 
 	for _, like := range likes {
 		var book Book
-		if err := db.First(&book, like.BookID).Error; err == nil {
-			likedBooks = append(likedBooks, book)
+		if err := db.First(&book, "id = ?", like.BookID).Error; err == nil {
+			likedBooks = append(likedBooks, book) 
 		}
 	}
 
