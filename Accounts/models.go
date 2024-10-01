@@ -10,6 +10,7 @@ type Account struct {
 	ProfilePhoto     string    	`gorm:"type:varchar(255)"`
 	Email     string 			`gorm:"unique;not null"`
 	Password  string			`gorm:"not null"`
+	Author 	  bool				`gorm:"default:false"`
 
 	Code 	  string			`gorm:"default:' '"`
 
