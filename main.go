@@ -5,6 +5,7 @@ import (
 
 	account "project/Accounts"
 	book "project/Book"
+	follow "project/Follow"
 	token "project/Token"
 
 	"github.com/gin-gonic/gin"
@@ -30,7 +31,7 @@ func main() {
 	}
 
 	// Migrate 
-	if err := db.AutoMigrate(&account.Account{}, &book.Book{}, &book.Like{}); err != nil {
+	if err := db.AutoMigrate(&account.Account{}, &book.Book{}, &book.Like{}, &follow.Follow{}); err != nil {
 		panic("failed to migrate database")
 	}	
 
@@ -38,6 +39,7 @@ func main() {
 	account.Init(db)
 	book.Init(db)
 	token.Init(db)
+	follow.Init(db)
 
 	protected := router.Group("/")
 	protected.Use(token.AuthMiddleware())
@@ -79,6 +81,13 @@ func main() {
 
 	protected.DELETE("/books/:id/like", book.DeleteLike)
 
+	// Book Part =======================================================
+
+	protected.POST("accounts/follow/:id", follow.MakeFollow)
+	protected.DELETE("accounts/follow/:id", follow.UnFollow)
+	protected.GET("accounts/follow", follow.GetFollowers)
+	protected.GET("accounts/follow/num", follow.GetNumberOfFollowersAndFriends)
+	protected.PUT("accounts/follow/relationship", follow.ChangeRelationship)
 	
 	// Run the server
 	router.Run(":8081")
