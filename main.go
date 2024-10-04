@@ -5,6 +5,7 @@ import (
 
 	account "project/Accounts"
 	book "project/Book"
+	comment "project/Comment"
 	follow "project/Follow"
 	token "project/Token"
 
@@ -31,7 +32,12 @@ func main() {
 	}
 
 	// Migrate 
-	if err := db.AutoMigrate(&account.Account{}, &book.Book{}, &book.Like{}, &follow.Follow{}); err != nil {
+	if err := db.AutoMigrate(
+		&account.Account{},
+		 &book.Book{}, &book.Like{},
+		  &follow.Follow{},
+		   &comment.Comment{}, &comment.CommentLike{},
+		   ); err != nil {
 		panic("failed to migrate database")
 	}	
 
@@ -40,6 +46,7 @@ func main() {
 	book.Init(db)
 	token.Init(db)
 	follow.Init(db)
+	comment.Init(db)
 
 	protected := router.Group("/")
 	protected.Use(token.AuthMiddleware())
@@ -64,6 +71,13 @@ func main() {
 	protected.PUT("/accounts/:id", account.UpdateAccountByID)
 	protected.DELETE("/accounts/:id", account.DeleteAccountbyid)
 
+		// Follow part =============================================
+	protected.POST("accounts/follow/:id", follow.MakeFollow)
+	protected.DELETE("accounts/follow/:id", follow.UnFollow)
+	protected.GET("accounts/follow", follow.GetFollowers)
+	protected.GET("accounts/follow/num", follow.GetNumberOfFollowersAndFriends)
+	protected.PUT("accounts/follow/relationship/:id", follow.ChangeRelationship)
+
 	// Book Part =======================================================
 
 	protected.POST("/books", book.CreatingBook)
@@ -81,13 +95,17 @@ func main() {
 
 	protected.DELETE("/books/:id/like", book.DeleteLike)
 
-	// Book Part =======================================================
+		// Comment part =============================================
+	protected.POST("/books/:id/comments", comment.MakeComment)
+	protected.DELETE("/books/:id/comments", comment.DeleteComment)
+	router.GET("/books/comments/:id", comment.GetCommentsByCommentTo)
+	protected.GET("/books/comments/me", comment.GetCommentsByAccount)
 
-	protected.POST("accounts/follow/:id", follow.MakeFollow)
-	protected.DELETE("accounts/follow/:id", follow.UnFollow)
-	protected.GET("accounts/follow", follow.GetFollowers)
-	protected.GET("accounts/follow/num", follow.GetNumberOfFollowersAndFriends)
-	protected.PUT("accounts/follow/relationship", follow.ChangeRelationship)
+			// Comment Likes Part
+	protected.POST("/books/comments/:id/like", comment.AddLikeToComment)
+	protected.GET("/books/comments/:id/like", comment.GetLikesOfComment)
+	protected.DELETE("/books/comments/:id/like", comment.RemoveLikeFromComment)
+	
 	
 	// Run the server
 	router.Run(":8081")
